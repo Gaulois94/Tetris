@@ -86,6 +86,11 @@ int main()
 						else
 							rotateCurrentBlock(game, -1, direction);
 					}
+
+					else if(event.key.keysym.scancode == SDL_SCANCODE_SPACE)
+					{
+						putDownCurrentBlock(game);
+					}
 				}
 			}
 		}
@@ -105,11 +110,11 @@ int main()
 	}
 
 	/* Clear the allocated memory */
+	clearMenu(menu);
+	clearGame(game);
 	SDL_DestroyRenderer(windowRenderer);
 	SDL_FreeSurface(windowSurface);
 	SDL_DestroyWindow(window);
-	clearMenu(menu);
-	clearGame(game);
 	clear();
 
 	return 0;

@@ -12,26 +12,27 @@ void getRecords(int* score, int* level, int* lines, char pseudo[20])
 
 	dictionary* parser = iniparser_load(fileName);
 
-	if(score)
+	if(score != NULL)
 		*score = iniparser_getint(parser, "Records:score", 0);
-	if(level)
+	if(level != NULL)
 		*level = iniparser_getint(parser, "Records:level", 1);
-	if(lines)
+	if(lines != NULL)
 		*lines = iniparser_getint(parser, "Records:lines", 0);
 
-	if(pseudo)
+	if(pseudo != NULL)
 	{
 		char *getPseudo = iniparser_getstring(parser, "Records:pseudo", "Unknow");
 		int i;
-		for(i=0; i < 20; i++)
+		for(i=0; getPseudo[i] != '\0'; i++)
 			pseudo[i] = getPseudo[i];
+		pseudo[i] = '\0';
 	}
 
 	iniparser_freedict(parser);
 	fclose(file);
 }
 
-void setRecords(int score, int level, int lines, char* pseudo)
+void setRecords(int score, int level, int lines, const char* pseudo)
 {
 	char fileName[15] = "records.ini";
 	FILE* file = fopen(fileName, "r+");

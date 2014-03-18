@@ -5,6 +5,6 @@
 #include "stdio.h"
 
 void getRecords(int* score, int* level, int* lines, char pseudo[20]);
-void setRecords(int score, int level, int lines, char* pseudo);
+void setRecords(int score, int level, int lines, const char* pseudo);
 
 #endif

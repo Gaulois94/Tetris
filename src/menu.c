@@ -78,7 +78,6 @@ void updateLabelColor(Menu *menu, SDL_Renderer *windowRenderer, SDL_Rect *mouseR
 	/* The color for the labels. */
 	SDL_Color inColor = {255, 255, 255};
 	SDL_Color outColor = {200, 200, 200};
-	menu->font = TTF_OpenFont("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 24);
 
 	if(rectCollision(*mouseRect, menu->quitRect))
 	{
@@ -127,5 +126,4 @@ void updateLabelColor(Menu *menu, SDL_Renderer *windowRenderer, SDL_Rect *mouseR
 			SDL_FreeSurface(startSurface);
 		}
 	}
-
 }

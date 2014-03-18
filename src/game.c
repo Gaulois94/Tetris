@@ -30,7 +30,7 @@ Game* initGame(SDL_Renderer *renderer)
 	game->scoreViewport.w = SIZE_X_INFO;
 	game->scoreViewport.h = SIZE_Y_INFO;
 
-	game->nextViewport.x = 3*SIZE_SPACE;
+	game->nextViewport.x = 3*SIZE_SPACE + SIZE_X_INFO + SIZE_X_GAME;
 	game->nextViewport.y = SIZE_SPACE;
 	game->nextViewport.w = SIZE_X_NEXT;
 	game->nextViewport.h = SCREEN_HEIGHT - 2*SIZE_SPACE;
@@ -40,6 +40,7 @@ Game* initGame(SDL_Renderer *renderer)
 	{
 		game->nextBlock[i] = getTypeRandomBlock();
 		game->rotationBlock[i] = rand()%4;
+		game->nextBlockTexture[i] = makeBlock(game, game->nextBlock[i], game->rotationBlock[i]);
 	}
 
 	game->font = TTF_OpenFont("DejaVuSansMono.ttf", 15);
@@ -51,13 +52,12 @@ Game* initGame(SDL_Renderer *renderer)
 	game->scoreLabel = NULL;
 	game->levelLabel = NULL;
 
-	updateScore(game);
-	updateLevel(game);
 	getHighScore(game);
 
 	game->timerLevel;
 
 	game->end = 0;
+	changeBlock(game);;
 	return game;
 }
 
@@ -76,10 +76,6 @@ void updateGame(Game* game)
 	/* Set the color for drawing stuff in the renderer only in the game */
 	SDL_SetRenderDrawColor(game->windowRenderer, 50, 0, 200, 255);
 
-	if(game->currentBlock == NULL)
-		putNewBlock(game);
-
-
 	/* Update the level */
 	updateLevel(game);
 
@@ -87,6 +83,7 @@ void updateGame(Game* game)
 	mainWindow(game);
 	scoreWindow(game);
 	recordWindow(game);
+	nextWindow(game);
 
 	/* Reinit the renderer */
 	SDL_SetRenderDrawColor(game->windowRenderer, r, g, b, a);
@@ -125,11 +122,12 @@ void mainWindow(Game* game)
 	/* Draw the block on the window */
 	for(i=0; i < game->numberEntity; i++)
 	{
-		for(j=0; j < 4; j++)
-		{
-			if(game->blockArray[i]->texture[j])
-				SDL_RenderCopy(game->windowRenderer, game->blockArray[i]->texture[j], NULL, &game->blockArray[i]->rect[j]);
-		}
+		if(game->blockArray[i])
+			for(j=0; j < 4; j++)
+			{
+				if(game->blockArray[i]->texture[j])
+					SDL_RenderCopy(game->windowRenderer, game->blockArray[i]->texture[j], NULL, &game->blockArray[i]->rect[j]);
+			}
 	}
 
 	/* Draw the outline rect of the Render */
@@ -218,6 +216,62 @@ void recordWindow(Game* game)
 	SDL_RenderDrawRect(game->windowRenderer, NULL);	
 }
 
+void nextWindow(Game* game)
+{
+	SDL_RenderSetViewport(game->windowRenderer, &game->nextViewport);
+
+	/* Get the outline rect for the next one block */
+	const int spaceOutlineBlock = 2;
+	SDL_Rect nextOneOutline;
+	nextOneOutline.y = 5 - spaceOutlineBlock;
+	nextOneOutline.x = (SIZE_X_NEXT - 4*SIZE_BLOCK)/2 - spaceOutlineBlock;
+	nextOneOutline.w = 4*SIZE_BLOCK + 2*spaceOutlineBlock;
+	nextOneOutline.h = 4*SIZE_BLOCK + 2*spaceOutlineBlock;
+
+	/* Put the Block in the correct place on the screen */
+	int i;
+	for(i=0; i < NUMBER_RANDOM_BLOCKS; i++)
+	{
+		int x, y;
+		SDL_Rect blockRect = getRectBlock(game->nextBlockTexture[i]);
+		/* If the block we move is the current block */
+		if(i==0)
+		{
+			x = nextOneOutline.x + (nextOneOutline.w - blockRect.w)/2;
+			y = nextOneOutline.y + (nextOneOutline.h - blockRect.h)/2;
+		}
+
+		else if(i%2 == 1)
+		{
+			x = (SIZE_X_NEXT - 5*SIZE_SPACE)/2;
+			y = ((i+1)/2)*(4*SIZE_BLOCK + 5) + SCREEN_HEIGHT/2 - 6*SIZE_SPACE;
+		}
+
+		else
+		{
+			x = (SIZE_X_NEXT + 2*SIZE_SPACE + 5)/2;
+			y = ((i+1)/2)*(4*SIZE_BLOCK + 5) + SCREEN_HEIGHT/2 - 6*SIZE_SPACE;
+		}
+
+		/* We move the sub block */
+		int j;
+		for(j=0; j < NUMBER_BLOCK_PER_ENTITY; j++)
+		{
+			game->nextBlockTexture[i]->rect[j].x -= (blockRect.x - x);
+			game->nextBlockTexture[i]->rect[j].y -= (blockRect.y - y);
+		}
+	}
+
+	for(i=0; i < NUMBER_RANDOM_BLOCKS; i++)
+	{
+		int j;
+		for(j=0; j < NUMBER_BLOCK_PER_ENTITY; j++)
+			SDL_RenderCopy(game->windowRenderer, game->nextBlockTexture[i]->texture[j], NULL, &(game->nextBlockTexture[i]->rect[j]));
+	}
+
+	SDL_RenderDrawRect(game->windowRenderer, NULL);	
+}
+
 void updateLevel(Game* game)
 {
 	if(game->changeLevel)
@@ -277,11 +331,11 @@ void changeBlock(Game* game)
 	checkEndGame(game);
 	deleteLines(game);
 	game->currentBlock = NULL;
+	putNewBlock(game);
 }
 
 void deleteLines(Game* game)
 {
-
 	/* Get the bock position in the map */
 	int position[SIZE_X_GAME/SIZE_BLOCK][(SCREEN_HEIGHT-2*SIZE_SPACE)/SIZE_BLOCK];
 	Block* matchBlock[SIZE_X_GAME/SIZE_BLOCK][(SCREEN_HEIGHT-2*SIZE_SPACE)/SIZE_BLOCK];
@@ -426,6 +480,13 @@ void moveCurrentBlock(Game* game, Direction direction)
 {
 	if(game->currentBlock != NULL && moveBlock(game, game->currentBlock, 1, direction))
 		changeBlock(game);
+}
+
+void putDownCurrentBlock(Game* game)
+{
+	Block* currentBlock = game->currentBlock;
+	while(currentBlock == game->currentBlock)
+		moveCurrentBlock(game, DOWN);
 }
 
 int moveBlock(Game* game, Block* block, int nbCase, Direction direction)
@@ -891,8 +952,11 @@ int getBlockEntityEnable(Block* block)
 /* Put a new Block on the Game */
 void putNewBlock(Game* game)
 {
+	/* Delete the old Block */
 	TypeBlock typeBlock = game->nextBlock[0];
 	int rotationBlock = game->rotationBlock[0];
+
+	clearBlock(game->nextBlockTexture[0]);
 
 	/* Move element in the table. */
 	int i;
@@ -900,11 +964,14 @@ void putNewBlock(Game* game)
 	{
 		game->nextBlock[i-1] = game->nextBlock[i];
 		game->rotationBlock[i-1] = game->rotationBlock[i];
+		game->nextBlockTexture[i-1] = game->nextBlockTexture[i];
 	}
+
 
 	/* Create a new random element */
 	game->nextBlock[NUMBER_RANDOM_BLOCKS-1] = getTypeRandomBlock();
 	game->rotationBlock[NUMBER_RANDOM_BLOCKS-1] = rand()%5;
+	game->nextBlockTexture[i-1] = makeBlock(game, game->nextBlock[NUMBER_RANDOM_BLOCKS-1], game->rotationBlock[NUMBER_RANDOM_BLOCKS-1]);
 
 	/* Create a entity */
 	game->numberEntity += 1;
@@ -915,8 +982,8 @@ void putNewBlock(Game* game)
 	SDL_Rect blockRect = getRectBlock(game->currentBlock);
 	for(i=0; i < NUMBER_BLOCK_PER_ENTITY; i++)
 	{
-		game->currentBlock->rect[i].x -= (blockRect.x - 160);
-		game->currentBlock->rect[i].y -= (blockRect.y + blockRect.w);
+		game->currentBlock->rect[i].x -= (blockRect.x - SIZE_X_GAME/2 + ((blockRect.w / SIZE_BLOCK) / 2) * SIZE_BLOCK);
+		game->currentBlock->rect[i].y -= (blockRect.y + blockRect.h);
 	}
 }
 
@@ -1003,6 +1070,8 @@ void removeBlock(Game* game, int index)
 /* Check if the game is over */
 int checkEndGame(Game* game)
 {
+	if(game->currentBlock == NULL)
+		return game->end;
 	SDL_Rect currentRect = getRectBlock(game->currentBlock);
 	if(currentRect.y < 0)
 	{
@@ -1020,6 +1089,8 @@ void clearGame(Game* game)
 	int i=0;
 	for(i=0; i < game->numberEntity; i++)
 		clearBlock(game->blockArray[i]);
+	for(i=0; i < NUMBER_RANDOM_BLOCKS; i++)
+		clearBlock(game->nextBlockTexture[i]);
 
 	/* Clear textures */
 	SDL_DestroyTexture(game->nextLabel);

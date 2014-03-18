@@ -8,13 +8,13 @@
 #define PASS_LEVEL 12
 
 /* Define Sizes */
-#define SCREEN_WIDTH 515
+#define SCREEN_WIDTH 755
 #define SCREEN_HEIGHT 450
 #define SIZE_X_INFO 200
 #define SIZE_X_GAME 240
 #define SIZE_X_NEXT 200
-#define SIZE_SPACE 25
 #define SIZE_Y_INFO 175
+#define SIZE_SPACE 25
 #define SIZE_BLOCK 20
 
 typedef enum Context

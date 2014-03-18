@@ -18,11 +18,12 @@ typedef struct Block{
 
 typedef struct Game{
 	Block** blockArray;
+	Block* nextBlockTexture[NUMBER_RANDOM_BLOCKS];
 	Block* currentBlock;
 	int numberEntity;
 
-	TypeBlock nextBlock[5];
-	int rotationBlock[5];
+	TypeBlock nextBlock[NUMBER_RANDOM_BLOCKS];
+	int rotationBlock[NUMBER_RANDOM_BLOCKS];
 
 	SDL_Rect gameViewport;
 	SDL_Rect scoreViewport;
@@ -56,6 +57,7 @@ void updateGame(Game* game);
 void mainWindow(Game* game);
 void scoreWindow(Game* game);
 void recordWindow(Game* game);
+void nextWindow(Game* game);
 
 void updateLevel(Game* game);
 void updateScore(Game* game);
@@ -65,6 +67,7 @@ void deleteLines(Game* game);
 
 Uint32 moveCurrentBlockCallback(Uint32 interval, void* param);
 void moveCurrentBlock(Game* game, Direction direction);
+void putDownCurrentBlock(Game* game);
 int moveBlock(Game* game, Block* bloc, int value, Direction direction);
 
 Block* makeBlock(Game* game, TypeBlock typeBlock, int rotation);
