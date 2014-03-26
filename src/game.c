@@ -243,13 +243,13 @@ void nextWindow(Game* game)
 
 		else if(i%2 == 1)
 		{
-			x = (SIZE_X_NEXT - 5*SIZE_SPACE)/2;
+			x = (SIZE_X_NEXT - 6*SIZE_SPACE)/2;
 			y = ((i+1)/2)*(4*SIZE_BLOCK + 5) + SCREEN_HEIGHT/2 - 6*SIZE_SPACE;
 		}
 
 		else
 		{
-			x = (SIZE_X_NEXT + 2*SIZE_SPACE + 5)/2;
+			x = (SIZE_X_NEXT + 1.5*SIZE_SPACE + 5)/2;
 			y = ((i+1)/2)*(4*SIZE_BLOCK + 5) + SCREEN_HEIGHT/2 - 6*SIZE_SPACE;
 		}
 
